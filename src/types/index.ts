@@ -24,6 +24,16 @@ export interface BreedingGroup {
   status: GroupStatus;
 }
 
+export interface WeeklyActivity {
+  weekOf: string;
+  person: string;
+  sheet: string;
+  item: string;
+  prevWeek: string;
+  thisWeek: string;
+  note: string;
+}
+
 export interface MonthlyRecord {
   month: string;
   farmId: string;

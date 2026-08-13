@@ -1,4 +1,4 @@
-import { Beef, Bird, LayoutGrid, PiggyBank } from 'lucide-react';
+import { Beef, Bird, CalendarClock, LayoutGrid, PiggyBank } from 'lucide-react';
 import type { Farm, FarmType } from '../types';
 
 const typeIcon: Record<FarmType, typeof Beef> = {
@@ -32,6 +32,18 @@ export function Sidebar({ farms, selected, onSelect }: SidebarProps) {
       >
         <LayoutGrid size={16} />
         전체 개요
+      </button>
+
+      <button
+        onClick={() => onSelect('weekly-activity')}
+        className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${
+          selected === 'weekly-activity'
+            ? 'bg-[var(--series-1)] text-white'
+            : 'text-[var(--text-secondary)] hover:bg-[var(--surface-2)]'
+        }`}
+      >
+        <CalendarClock size={16} />
+        주간활동
       </button>
 
       <div className="mt-4 mb-1 px-3 text-xs font-medium text-[var(--text-muted)]">농장 목록</div>
