@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { AlertTriangle, ArrowLeft, HeartPulse, Layers, PiggyBank, Truck } from 'lucide-react';
-import type { Farm } from '../types';
-import { breedingGroups, snapshotDate } from '../data/breeding';
+import type { BreedingGroup, Farm } from '../types';
+import { snapshotDate } from '../data/breeding';
 import { applyFilters, emptyFilters } from '../lib/filter';
 import { formatNumber, summarizeFarm, totalsOf } from '../lib/stats';
 import { StatTile } from './StatTile';
@@ -9,9 +9,15 @@ import { GroupFilters } from './GroupFilters';
 import { GroupTable } from './GroupTable';
 import { RankedBarChart } from './charts/RankedBarChart';
 
-export function FarmDetailPage({ farm, onBack }: { farm: Farm; onBack: () => void }) {
+interface FarmDetailPageProps {
+  farm: Farm;
+  groups: BreedingGroup[];
+  onBack: () => void;
+}
+
+export function FarmDetailPage({ farm, groups: allGroups, onBack }: FarmDetailPageProps) {
   const [filters, setFilters] = useState(emptyFilters);
-  const groups = useMemo(() => breedingGroups.filter((g) => g.farmId === farm.id), [farm.id]);
+  const groups = useMemo(() => allGroups.filter((g) => g.farmId === farm.id), [allGroups, farm.id]);
   const filtered = useMemo(() => applyFilters(groups, filters), [groups, filters]);
 
   const summary = summarizeFarm(farm, groups);

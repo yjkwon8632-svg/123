@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import { AlertTriangle, Building2, HeartPulse, Layers, PiggyBank, Truck } from 'lucide-react';
-import { breedingGroups, farms, snapshotDate } from '../data/breeding';
+import { snapshotDate } from '../data/breeding';
+import { managedFarmsWithoutGroups } from '../data/managedFarms';
+import type { BreedingGroup, Farm } from '../types';
+import type { Scope } from '../lib/scope';
 import { applyFilters, emptyFilters } from '../lib/filter';
 import { formatNumber, monthlyInflow, stageDistribution, summarizeFarms, totalsOf } from '../lib/stats';
 import { StatTile } from './StatTile';
@@ -10,28 +13,38 @@ import { HeadcountBarChart } from './charts/HeadcountBarChart';
 import { RankedBarChart } from './charts/RankedBarChart';
 import { TrendLineChart } from './charts/TrendLineChart';
 
-const pigTypes = [...new Set(breedingGroups.map((g) => g.pigType))];
+interface OverviewPageProps {
+  groups: BreedingGroup[];
+  farms: Farm[];
+  scope: Scope;
+  onSelectFarm: (farmId: string) => void;
+}
 
-
-export function OverviewPage({ onSelectFarm }: { onSelectFarm: (farmId: string) => void }) {
+export function OverviewPage({ groups, farms, scope, onSelectFarm }: OverviewPageProps) {
   const [filters, setFilters] = useState(emptyFilters);
-  const filtered = useMemo(() => applyFilters(breedingGroups, filters), [filters]);
+  const filtered = useMemo(() => applyFilters(groups, filters), [groups, filters]);
 
-  const totals = totalsOf(breedingGroups);
-  const farmSummaries = summarizeFarms(farms, breedingGroups);
+  const pigTypes = [...new Set(groups.map((g) => g.pigType))];
+  const totals = totalsOf(groups);
+  const farmSummaries = summarizeFarms(farms, groups);
   const byFarm = [...farmSummaries]
     .sort((a, b) => b.currentCount - a.currentCount)
     .map((s) => ({ name: s.farm.name, value: s.currentCount }));
-  const byStage = stageDistribution(breedingGroups);
-  const inflow = monthlyInflow(breedingGroups);
+  const byStage = stageDistribution(groups);
+  const inflow = monthlyInflow(groups);
   const nameToId = new Map(farms.map((f) => [f.name, f.id]));
 
   return (
     <div className="flex flex-col gap-6 p-6">
       <div>
-        <h2 className="text-xl font-semibold text-[var(--text-primary)]">전체 사육현황</h2>
+        <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+          {scope === 'managed' ? '관리 농장 사육현황' : '전체 사육현황'}
+        </h2>
         <p className="text-sm text-[var(--text-muted)]">
           {snapshotDate} 기준 · 농장 {totals.farmCount}개 · 사육그룹 {totals.groupCount}개
+          {scope === 'managed' && managedFarmsWithoutGroups.length > 0 && (
+            <> · 지정 농장 중 {managedFarmsWithoutGroups.join(', ')}은 이번 스냅샷에 사육그룹이 없습니다</>
+          )}
         </p>
       </div>
 
@@ -62,14 +75,14 @@ export function OverviewPage({ onSelectFarm }: { onSelectFarm: (farmId: string) 
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5">
+        <section className="self-start rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5">
           <h3 className="text-sm font-medium text-[var(--text-secondary)]">농장별 현재 사육두수</h3>
           <p className="mt-1 mb-3 text-xs text-[var(--text-muted)]">
             사육두수 순 {byFarm.length}개 농장 · 막대를 누르면 농장 상세로 이동합니다
           </p>
           <RankedBarChart
             data={byFarm}
-            rowHeight={20}
+            rowHeight={byFarm.length > 20 ? 20 : 24}
             onSelect={(name) => {
               const id = nameToId.get(name);
               if (id) onSelectFarm(id);

@@ -1,17 +1,32 @@
 import { useState } from 'react';
 import { LayoutGrid, PiggyBank, Search } from 'lucide-react';
 import type { FarmSummary } from '../types';
+import type { Scope } from '../lib/scope';
 import { formatNumber } from '../lib/stats';
 
 interface SidebarProps {
   summaries: FarmSummary[];
   selected: string;
   onSelect: (id: string) => void;
+  scope: Scope;
+  onScopeChange: (scope: Scope) => void;
+  scopeFarmCount: Record<Scope, number>;
   snapshotDate: string;
   totalCount: number;
 }
 
-export function Sidebar({ summaries, selected, onSelect, snapshotDate, totalCount }: SidebarProps) {
+const scopeLabel: Record<Scope, string> = { managed: '관리 농장', all: '전체 농장' };
+
+export function Sidebar({
+  summaries,
+  selected,
+  onSelect,
+  scope,
+  onScopeChange,
+  scopeFarmCount,
+  snapshotDate,
+  totalCount,
+}: SidebarProps) {
   const [query, setQuery] = useState('');
   const visible = summaries.filter((s) => s.farm.name.toLowerCase().includes(query.trim().toLowerCase()));
 
@@ -25,6 +40,23 @@ export function Sidebar({ summaries, selected, onSelect, snapshotDate, totalCoun
         <p className="mt-1 text-xs text-[var(--text-muted)]">
           {snapshotDate} 기준 · 총 {formatNumber(totalCount)}두
         </p>
+      </div>
+
+      <div className="flex gap-1 border-b border-[var(--border)] p-3">
+        {(['managed', 'all'] as Scope[]).map((key) => (
+          <button
+            key={key}
+            onClick={() => onScopeChange(key)}
+            aria-pressed={scope === key}
+            className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${
+              scope === key
+                ? 'border-[var(--series-1)] bg-[var(--series-1)] text-white'
+                : 'border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)]'
+            }`}
+          >
+            {scopeLabel[key]} {scopeFarmCount[key]}
+          </button>
+        ))}
       </div>
 
       <div className="flex flex-col gap-1 p-3">
